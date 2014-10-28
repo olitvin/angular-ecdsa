@@ -1,5 +1,5 @@
 /*
-  angular-ecdsa - v0.0.1 
+  angular-ecdsa - v0.0.2 
   2014-10-28
 */
 (function(window, angular, Math, undefined) {
