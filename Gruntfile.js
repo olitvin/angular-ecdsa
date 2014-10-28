@@ -10,7 +10,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-open');
   grunt.loadNpmTasks('grunt-contrib-watch');
 //  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-browserify');
 
@@ -68,45 +67,6 @@ module.exports = function(grunt) {
       }
     },
 
-    connect: {
-      options: {
-        base: '.',
-//        livereload: 35729
-      },
-      livereload: {
-        options: {
-          open: true,
-          base: [
-            '.tmp',
-            'lib'
-          ]
-        }
-      },
-      webserver: {
-        options: {
-          port: 8888,
-          keepalive: true
-        }
-      },
-      devserver: {
-        options: {
-          port: 8888
-        }
-      },
-      testserver: {
-        options: {
-          port: 9999
-        }
-      },
-      coverage: {
-        options: {
-          base: 'coverage/',
-          port: 5555,
-          keepalive: true
-        }
-      }
-    },
-
     open: {
       devserver: {
         path: 'http://localhost:8888'
@@ -121,25 +81,6 @@ module.exports = function(grunt) {
         configFile: './test/karma-unit.conf.js',
         autoWatch: false,
         singleRun: true
-      },
-      unit_auto: {
-        configFile: './test/karma-unit.conf.js'
-      },
-      midway: {
-        configFile: './test/karma-midway.conf.js',
-        autoWatch: false,
-        singleRun: true
-      },
-      midway_auto: {
-        configFile: './test/karma-midway.conf.js'
-      },
-      e2e: {
-        configFile: './test/karma-e2e.conf.js',
-        autoWatch: false,
-        singleRun: true
-      },
-      e2e_auto: {
-        configFile: './test/karma-e2e.conf.js'
       }
     },
 

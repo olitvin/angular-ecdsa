@@ -24,7 +24,6 @@
   ],
   "dependencies": {
     "angular": ">=1.0.0 <1.4.0",
-    "angular-mocks": "1.2.1",
-    "angularjs-scope.safeapply": "*"
+    "angular-mocks": "1.2.1"
   }
 }

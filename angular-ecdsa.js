@@ -93,7 +93,7 @@
             coinstring: 2,
             eckey: 4,
             "secure-random": 14,
-            util: 63
+            util: 49
         } ],
         2: [ function(require, module, exports) {
             (function(Buffer) {
@@ -324,7 +324,7 @@
         }, {
             bigi: 7,
             buffer: 42,
-            crypto: 49,
+            crypto: 18,
             ecurve: 11
         } ],
         5: [ function(require, module, exports) {
@@ -1922,7 +1922,7 @@
                 }(this);
             }).call(this, require("_process"), require("buffer").Buffer);
         }, {
-            _process: 61,
+            _process: 47,
             buffer: 42,
             crypto: 41
         } ],
@@ -2536,7 +2536,7 @@
                 return Sha1;
             };
         }, {
-            util: 63
+            util: 49
         } ],
         25: [ function(require, module, exports) {
             var inherits = require("util").inherits;
@@ -2634,7 +2634,7 @@
                 return Sha256;
             };
         }, {
-            util: 63
+            util: 49
         } ],
         26: [ function(require, module, exports) {
             var inherits = require("util").inherits;
@@ -2797,7 +2797,7 @@
                 return Sha512;
             };
         }, {
-            util: 63
+            util: 49
         } ],
         27: [ function(require, module, exports) {
             var pbkdf2Export = require("pbkdf2-compat/pbkdf2");
@@ -3015,7 +3015,7 @@
             assert: 40,
             bigi: 33,
             buffer: 42,
-            crypto: 49,
+            crypto: 18,
             ecurve: 37
         } ],
         30: [ function(require, module, exports) {
@@ -3027,7 +3027,7 @@
                 return crypto.createHmac("sha256", k).update(v).digest();
             }
         }, {
-            crypto: 49
+            crypto: 18
         } ],
         31: [ function(require, module, exports) {
             arguments[4][5][0].apply(exports, arguments);
@@ -3330,7 +3330,7 @@
                 return keys;
             };
         }, {
-            "util/": 63
+            "util/": 49
         } ],
         41: [ function(require, module, exports) {}, {} ],
         42: [ function(require, module, exports) {
@@ -4283,102 +4283,6 @@
             };
         }, {} ],
         46: [ function(require, module, exports) {
-            module.exports = require(15);
-        }, {
-            "./md5": 50,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/create-hash.js": 15,
-            buffer: 42,
-            ripemd160: 52,
-            "sha.js": 54
-        } ],
-        47: [ function(require, module, exports) {
-            module.exports = require(16);
-        }, {
-            "./create-hash": 46,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/create-hmac.js": 16,
-            buffer: 42
-        } ],
-        48: [ function(require, module, exports) {
-            module.exports = require(17);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/helpers.js": 17,
-            buffer: 42
-        } ],
-        49: [ function(require, module, exports) {
-            module.exports = require(18);
-        }, {
-            "./create-hash": 46,
-            "./create-hmac": 47,
-            "./pbkdf2": 58,
-            "./rng": 59,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/index.js": 18,
-            buffer: 42
-        } ],
-        50: [ function(require, module, exports) {
-            module.exports = require(19);
-        }, {
-            "./helpers": 48,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/md5.js": 19
-        } ],
-        51: [ function(require, module, exports) {
-            module.exports = require(20);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/pbkdf2-compat/pbkdf2.js": 20,
-            buffer: 42
-        } ],
-        52: [ function(require, module, exports) {
-            module.exports = require(21);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/ripemd160/lib/ripemd160.js": 21,
-            buffer: 42
-        } ],
-        53: [ function(require, module, exports) {
-            module.exports = require(22);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/sha.js/hash.js": 22
-        } ],
-        54: [ function(require, module, exports) {
-            module.exports = require(23);
-        }, {
-            "./hash": 53,
-            "./sha1": 55,
-            "./sha256": 56,
-            "./sha512": 57,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/sha.js/index.js": 23,
-            buffer: 42
-        } ],
-        55: [ function(require, module, exports) {
-            module.exports = require(24);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/sha.js/sha1.js": 24,
-            util: 63
-        } ],
-        56: [ function(require, module, exports) {
-            module.exports = require(25);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/sha.js/sha256.js": 25,
-            util: 63
-        } ],
-        57: [ function(require, module, exports) {
-            module.exports = require(26);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/node_modules/sha.js/sha512.js": 26,
-            util: 63
-        } ],
-        58: [ function(require, module, exports) {
-            module.exports = require(27);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/pbkdf2.js": 27,
-            "pbkdf2-compat/pbkdf2": 51
-        } ],
-        59: [ function(require, module, exports) {
-            module.exports = require(28);
-        }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/crypto-browserify/rng.js": 28,
-            buffer: 42,
-            crypto: 41
-        } ],
-        60: [ function(require, module, exports) {
             if (typeof Object.create === "function") {
                 module.exports = function inherits(ctor, superCtor) {
                     ctor.super_ = superCtor;
@@ -4401,7 +4305,7 @@
                 };
             }
         }, {} ],
-        61: [ function(require, module, exports) {
+        47: [ function(require, module, exports) {
             var process = module.exports = {};
             process.nextTick = function() {
                 var canSetImmediate = typeof window !== "undefined" && window.setImmediate;
@@ -4474,12 +4378,12 @@
                 throw new Error("process.chdir is not supported");
             };
         }, {} ],
-        62: [ function(require, module, exports) {
+        48: [ function(require, module, exports) {
             module.exports = function isBuffer(arg) {
                 return arg && typeof arg === "object" && typeof arg.copy === "function" && typeof arg.fill === "function" && typeof arg.readUInt8 === "function";
             };
         }, {} ],
-        63: [ function(require, module, exports) {
+        49: [ function(require, module, exports) {
             (function(process, global) {
                 var formatRegExp = /%[sdj%]/g;
                 exports.format = function(f) {
@@ -4888,14 +4792,14 @@
                 }
             }).call(this, require("_process"), typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
         }, {
-            "./support/isBuffer": 62,
-            _process: 61,
-            inherits: 60
+            "./support/isBuffer": 48,
+            _process: 47,
+            inherits: 46
         } ],
-        64: [ function(require, module, exports) {
+        50: [ function(require, module, exports) {
             angular.module("ng-ecdsa", [ "sacketty.ecdsa", "sacketty.crypto", "sacketty.coinkey", "sacketty.buffer" ]);
         }, {} ],
-        65: [ function(require, module, exports) {
+        51: [ function(require, module, exports) {
             "use strict";
             var buffer = require("buffer");
             angular.module("sacketty.buffer", []).factory("buffer", function() {
@@ -4904,7 +4808,7 @@
         }, {
             buffer: 42
         } ],
-        66: [ function(require, module, exports) {
+        52: [ function(require, module, exports) {
             "use strict";
             var coinkey = require("coinkey");
             angular.module("sacketty.coinkey", []).factory("Coinkey", function() {
@@ -4913,16 +4817,16 @@
         }, {
             coinkey: 1
         } ],
-        67: [ function(require, module, exports) {
+        53: [ function(require, module, exports) {
             "use strict";
             var crypto = require("crypto");
             angular.module("sacketty.crypto", []).factory("crypto", function() {
                 return crypto;
             });
         }, {
-            crypto: 49
+            crypto: 18
         } ],
-        68: [ function(require, module, exports) {
+        54: [ function(require, module, exports) {
             "use strict";
             var ecdsa = require("ecdsa");
             angular.module("sacketty.ecdsa", []).factory("ecdsa", function() {
@@ -4931,5 +4835,5 @@
         }, {
             ecdsa: 29
         } ]
-    }, {}, [ 64, 65, 66, 67, 68 ]);
+    }, {}, [ 50, 51, 52, 53, 54 ]);
 })(this, this.angular, this.Math, void 0);
