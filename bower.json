@@ -1,0 +1,30 @@
+{
+  "name": "angular-ecdsa",
+  "version": "0.0.1",
+  "authors": [
+    "Henri Sack <hsack@abriva.net>"
+  ],
+  "description": "ng module for JavaScript component for Elliptical Curve Cryptography signing and verification",
+  "main": "angular-ecdsa.js",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "ecdsa",
+    "crypto",
+    "cryptographic"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": ">=1.0.0 <1.4.0",
+    "angular-mocks": "1.2.1",
+    "angularjs-scope.safeapply": "*"
+  }
+}
