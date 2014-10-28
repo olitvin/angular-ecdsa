@@ -8,27 +8,14 @@ Pull requests are welcome
 
 ## Using the module
 
-Install grunt
-`npm install -g grunt-cli`
+`bower install angular-ecdsa`
 
-And then be sure to install everything that the repo requires:
-`npm install`
-`bower install`
+the module named 'ng-ecdsa' is available to you for your application
 
-And you are ready to go...
+ex:
 
-***
+	angular.module('App',['ng-ecdsa']);
 
-### Development Mode
-
-To re-build this the module
-`grunt`
-
-
-### Test
-
-You can run individual test suites by running the commands:
-`grunt test`
 
 
 ### Credits
