@@ -1,5 +1,5 @@
 /*
-  angular-ecdsa - v0.0.2 
+  angular-ecdsa - v0.0.3 
   2014-10-29
 */
 (function(window, angular, Math, undefined) {
@@ -4950,9 +4950,9 @@
         } ],
         55: [ function(require, module, exports) {
             "use strict";
-            var Coinkey = require("coinkey");
-            angular.module("sacketty.coinkey", []).factory("Coinkey", function() {
-                return Coinkey;
+            var CoinKey = require("coinkey");
+            angular.module("sacketty.coinkey", []).factory("CoinKey", function() {
+                return CoinKey;
             });
         }, {
             coinkey: 2

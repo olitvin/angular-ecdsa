@@ -7,17 +7,17 @@ describe('Service: ecdsa', function () {
 
   // instantiate service
   var ecdsa;
-  var Coinkey;
+  var CoinKey;
   var Buffer;
   var crypto;
   var ck;
 
-  beforeEach(inject(function (_ecdsa_, _crypto_, _Coinkey_, _buffer_) {
+  beforeEach(inject(function (_ecdsa_, _crypto_, _CoinKey_, _buffer_) {
     ecdsa = _ecdsa_;
     crypto = _crypto_;
-    Coinkey = _Coinkey_;
+    CoinKey = _CoinKey_;
     Buffer = _buffer_.Buffer;
-    ck = Coinkey.createRandom();
+    ck = CoinKey.createRandom();
   }));
 
   it('should be instanciated', function () {
@@ -31,19 +31,27 @@ describe('Service: ecdsa', function () {
     var isValid = ecdsa.verify(shaMsg, signature, ck.publicKey)
     expect(isValid).toBe(true);
   });
-  it('should have the same privateKey from wif'), function(){
+  it('should have the same privateKey from wif', function(){
     var privateWif = ck.privateWif;
-    var ck2 = Coinkey.fromWIF(privateWif);
+    var ck2 = CoinKey.fromWif(privateWif);
     expect(ck2.privateKey.toString('hex')).toEqual(ck2.privateKey.toString('hex'));
-  };
-  it('verify from recreated Coinkey'), function(){
-    var msg = new Buffer("hello world!", 'utf8')
-    var shaMsg = crypto.createHash('sha256').update(msg).digest()
+  });
+  it('verify from recreated Coinkey', function(){
+    var msg = new Buffer("hello world!", 'utf8');
+    var nonce = 'nonce';
+    var shaMsg = crypto.createHash('sha256').update(msg).update(nonce).digest()
     var signature = ecdsa.sign(shaMsg, ck.privateKey)
     var privateWif = ck.privateWif;
-    var ck2 = Coinkey.fromWIF(privateWif);
+    var ck2 = CoinKey.fromWif(privateWif);
     var isValid = ecdsa.verify(shaMsg, signature, ck2.publicKey)
     expect(isValid).toBe(true);
-  }
+  });
+
+  it('should generate a 32 bytes buffer', function(){
+    var privateKey = ck.privateKey;
+    expect(privateKey.length).toEqual(32);
+    expect(Buffer.isBuffer(privateKey)).toBe(true);
+  });
+
 });
 

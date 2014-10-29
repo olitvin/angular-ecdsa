@@ -35,6 +35,7 @@ see [http://cryptocoinjs.com](cryptocoinjs.com) for ecdsa, crypto, and coinkey u
 | ng-buffer | buffer |
 | ng-aes | aes |
 | ng-pbkdf2 | pbkdf2 |
+| ng-bs58 | base58 |
 
 
 

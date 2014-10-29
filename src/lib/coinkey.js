@@ -1,7 +1,7 @@
 'use strict';
-var Coinkey = require('coinkey');
+var CoinKey = require('coinkey');
 
 angular.module('sacketty.coinkey',[])
-.factory('Coinkey', function() {
-  return Coinkey
-})
+.factory('CoinKey', function() {
+  return CoinKey;
+});
