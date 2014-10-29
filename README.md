@@ -16,11 +16,13 @@ ex:
 
 	angular.module('App',['ng-ecdsa'])
 	  .factory('Product', 
-	    ['ecdsa', 'crypto','coinkey','buffer'], 
+	    ['ecdsa', 'crypto','Coinkey','buffer'], 
 	      function(ecdsa, crypto, coinkey, buffer){
 	        var Buffer = new buffer.Buffer();
 	        ...
 	      });
+
+( Beware 'C' capital letter for Coinkey )
 
 see [http://cryptocoinjs.com](cryptocoinjs.com) for ecdsa, crypto, and coinkey usage.
 

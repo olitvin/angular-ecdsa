@@ -1,6 +1,6 @@
 /*
   angular-ecdsa - v0.0.2 
-  2014-10-28
+  2014-10-29
 */
 (function(window, angular, Math, undefined) {
     (function e(t, n, r) {
