@@ -4,3 +4,8 @@ angular.module('ng-ecdsa',[
   'sacketty.coinkey',
   'sacketty.buffer'
 ]);
+angular.module('ng-crypto',['sacketty.crypto']);
+angular.module('ng-coinkey',['sacketty.coinkey']);
+angular.module('ng-aes',['sacketty.aes']);
+angular.module('ng-buffer',['sacketty.buffer']);
+angular.module('ng-pbkdf2',['sacketty.pbkdf2']);

@@ -26,6 +26,17 @@ ex:
 
 see [http://cryptocoinjs.com](cryptocoinjs.com) for ecdsa, crypto, and coinkey usage.
 
+#### Modules added table:
+| module name | injected |
+| ----------- | -------- |
+| ng-ecdsa    | ecdsa, crypto, Coinkey, buffer |
+| ng-crypto | crypto |
+| ng-coinkey | Coinkey |
+| ng-buffer | buffer |
+| ng-aes | aes |
+| ng-pbkdf2 | pbkdf2 |
+
+
 
 
 ### Credits

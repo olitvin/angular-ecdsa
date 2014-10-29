@@ -28,6 +28,93 @@
         return s;
     })({
         1: [ function(require, module, exports) {
+            module.exports = AES;
+            function AES(key) {
+                if (!this._tables[0][0][0]) this._precompute();
+                var tmp, encKey, decKey;
+                var sbox = this._tables[0][4];
+                var decTable = this._tables[1];
+                var keyLen = key.length;
+                var rcon = 1;
+                if (keyLen !== 4 && keyLen !== 6 && keyLen !== 8) {
+                    throw new Error("invalid aes key size");
+                }
+                this._key = [ encKey = key.slice(0), decKey = [] ];
+                for (var i = keyLen; i < 4 * keyLen + 28; i++) {
+                    tmp = encKey[i - 1];
+                    if (i % keyLen === 0 || keyLen === 8 && i % keyLen === 4) {
+                        tmp = sbox[tmp >>> 24] << 24 ^ sbox[tmp >> 16 & 255] << 16 ^ sbox[tmp >> 8 & 255] << 8 ^ sbox[tmp & 255];
+                        if (i % keyLen === 0) {
+                            tmp = tmp << 8 ^ tmp >>> 24 ^ rcon << 24;
+                            rcon = rcon << 1 ^ (rcon >> 7) * 283;
+                        }
+                    }
+                    encKey[i] = encKey[i - keyLen] ^ tmp;
+                }
+                for (var j = 0; i; j++, i--) {
+                    tmp = encKey[j & 3 ? i : i - 4];
+                    if (i <= 4 || j < 4) {
+                        decKey[j] = tmp;
+                    } else {
+                        decKey[j] = decTable[0][sbox[tmp >>> 24]] ^ decTable[1][sbox[tmp >> 16 & 255]] ^ decTable[2][sbox[tmp >> 8 & 255]] ^ decTable[3][sbox[tmp & 255]];
+                    }
+                }
+            }
+            AES.prototype = {
+                encrypt: function(data) {
+                    return this._crypt(data, 0);
+                },
+                decrypt: function(data) {
+                    return this._crypt(data, 1);
+                },
+                _tables: [ [ new Uint32Array(256), new Uint32Array(256), new Uint32Array(256), new Uint32Array(256), new Uint32Array(256) ], [ new Uint32Array(256), new Uint32Array(256), new Uint32Array(256), new Uint32Array(256), new Uint32Array(256) ] ],
+                _precompute: function() {
+                    var encTable = this._tables[0], decTable = this._tables[1], sbox = encTable[4], sboxInv = decTable[4], i, x, xInv, d = new Uint8Array(256), th = new Uint8Array(256), x2, x4, x8, s, tEnc, tDec;
+                    for (i = 0; i < 256; i++) {
+                        th[(d[i] = i << 1 ^ (i >> 7) * 283) ^ i] = i;
+                    }
+                    for (x = xInv = 0; !sbox[x]; x ^= x2 || 1, xInv = th[xInv] || 1) {
+                        s = xInv ^ xInv << 1 ^ xInv << 2 ^ xInv << 3 ^ xInv << 4;
+                        s = s >> 8 ^ s & 255 ^ 99;
+                        sbox[x] = s;
+                        sboxInv[s] = x;
+                        x8 = d[x4 = d[x2 = d[x]]];
+                        tDec = x8 * 16843009 ^ x4 * 65537 ^ x2 * 257 ^ x * 16843008;
+                        tEnc = d[s] * 257 ^ s * 16843008;
+                        for (i = 0; i < 4; i++) {
+                            encTable[i][x] = tEnc = tEnc << 24 ^ tEnc >>> 8;
+                            decTable[i][s] = tDec = tDec << 24 ^ tDec >>> 8;
+                        }
+                    }
+                },
+                _crypt: function(input, dir) {
+                    if (input.length !== 4) {
+                        throw new Error("invalid aes block size");
+                    }
+                    var key = this._key[dir], a = input[0] ^ key[0], b = input[dir ? 3 : 1] ^ key[1], c = input[2] ^ key[2], d = input[dir ? 1 : 3] ^ key[3], a2, b2, c2, nInnerRounds = key.length / 4 - 2, i, kIndex = 4, out = new Uint32Array(4), table = this._tables[dir], t0 = table[0], t1 = table[1], t2 = table[2], t3 = table[3], sbox = table[4];
+                    for (i = 0; i < nInnerRounds; i++) {
+                        a2 = t0[a >>> 24] ^ t1[b >> 16 & 255] ^ t2[c >> 8 & 255] ^ t3[d & 255] ^ key[kIndex];
+                        b2 = t0[b >>> 24] ^ t1[c >> 16 & 255] ^ t2[d >> 8 & 255] ^ t3[a & 255] ^ key[kIndex + 1];
+                        c2 = t0[c >>> 24] ^ t1[d >> 16 & 255] ^ t2[a >> 8 & 255] ^ t3[b & 255] ^ key[kIndex + 2];
+                        d = t0[d >>> 24] ^ t1[a >> 16 & 255] ^ t2[b >> 8 & 255] ^ t3[c & 255] ^ key[kIndex + 3];
+                        kIndex += 4;
+                        a = a2;
+                        b = b2;
+                        c = c2;
+                    }
+                    for (i = 0; i < 4; i++) {
+                        out[dir ? 3 & -i : i] = sbox[a >>> 24] << 24 ^ sbox[b >> 16 & 255] << 16 ^ sbox[c >> 8 & 255] << 8 ^ sbox[d & 255] ^ key[kIndex++];
+                        a2 = a;
+                        a = b;
+                        b = c;
+                        c = d;
+                        d = a2;
+                    }
+                    return out;
+                }
+            };
+        }, {} ],
+        2: [ function(require, module, exports) {
             (function(Buffer) {
                 var util = require("util");
                 var assert = require("assert");
@@ -88,14 +175,14 @@
                 module.exports = CoinKey;
             }).call(this, require("buffer").Buffer);
         }, {
-            assert: 40,
-            buffer: 42,
-            coinstring: 2,
-            eckey: 4,
-            "secure-random": 14,
-            util: 49
+            assert: 41,
+            buffer: 43,
+            coinstring: 3,
+            eckey: 5,
+            "secure-random": 15,
+            util: 50
         } ],
-        2: [ function(require, module, exports) {
+        3: [ function(require, module, exports) {
             (function(Buffer) {
                 var crypto = require("crypto");
                 var assert = require("assert");
@@ -166,12 +253,12 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            assert: 40,
-            bs58: 3,
-            buffer: 42,
-            crypto: 18
+            assert: 41,
+            bs58: 4,
+            buffer: 43,
+            crypto: 19
         } ],
-        3: [ function(require, module, exports) {
+        4: [ function(require, module, exports) {
             (function(Buffer) {
                 var assert = require("assert");
                 var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -232,10 +319,10 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            assert: 40,
-            buffer: 42
+            assert: 41,
+            buffer: 43
         } ],
-        4: [ function(require, module, exports) {
+        5: [ function(require, module, exports) {
             (function(Buffer) {
                 var crypto = require("crypto");
                 var ecurve = require("ecurve");
@@ -322,12 +409,12 @@
                 module.exports = ECKey;
             }).call(this, require("buffer").Buffer);
         }, {
-            bigi: 7,
-            buffer: 42,
-            crypto: 18,
-            ecurve: 11
+            bigi: 8,
+            buffer: 43,
+            crypto: 19,
+            ecurve: 12
         } ],
-        5: [ function(require, module, exports) {
+        6: [ function(require, module, exports) {
             function BigInteger(a, b, c) {
                 if (!(this instanceof BigInteger)) return new BigInteger(a, b, c);
                 if (a != null) {
@@ -1403,9 +1490,9 @@
             BigInteger.valueOf = nbv;
             module.exports = BigInteger;
         }, {
-            "../package.json": 8
+            "../package.json": 9
         } ],
-        6: [ function(require, module, exports) {
+        7: [ function(require, module, exports) {
             (function(Buffer) {
                 var assert = require("assert");
                 var BigInteger = require("./bigi");
@@ -1448,19 +1535,19 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            "./bigi": 5,
-            assert: 40,
-            buffer: 42
+            "./bigi": 6,
+            assert: 41,
+            buffer: 43
         } ],
-        7: [ function(require, module, exports) {
+        8: [ function(require, module, exports) {
             var BigInteger = require("./bigi");
             require("./convert");
             module.exports = BigInteger;
         }, {
-            "./bigi": 5,
-            "./convert": 6
+            "./bigi": 6,
+            "./convert": 7
         } ],
-        8: [ function(require, module, exports) {
+        9: [ function(require, module, exports) {
             module.exports = {
                 name: "bigi",
                 version: "1.3.0",
@@ -1500,7 +1587,7 @@
                 _from: "bigi@^1.1.0"
             };
         }, {} ],
-        9: [ function(require, module, exports) {
+        10: [ function(require, module, exports) {
             var assert = require("assert");
             var BigInteger = require("bigi");
             var Point = require("./point");
@@ -1549,11 +1636,11 @@
             };
             module.exports = Curve;
         }, {
-            "./point": 13,
-            assert: 40,
-            bigi: 7
+            "./point": 14,
+            assert: 41,
+            bigi: 8
         } ],
-        10: [ function(require, module, exports) {
+        11: [ function(require, module, exports) {
             module.exports = {
                 secp128r1: {
                     p: "fffffffdffffffffffffffffffffffff",
@@ -1620,7 +1707,7 @@
                 }
             };
         }, {} ],
-        11: [ function(require, module, exports) {
+        12: [ function(require, module, exports) {
             var Point = require("./point");
             var Curve = require("./curve");
             var getCurveByName = require("./names");
@@ -1630,11 +1717,11 @@
                 getCurveByName: getCurveByName
             };
         }, {
-            "./curve": 9,
-            "./names": 12,
-            "./point": 13
+            "./curve": 10,
+            "./names": 13,
+            "./point": 14
         } ],
-        12: [ function(require, module, exports) {
+        13: [ function(require, module, exports) {
             var BigInteger = require("bigi");
             var curves = require("./curves");
             var Curve = require("./curve");
@@ -1652,11 +1739,11 @@
             }
             module.exports = getCurveByName;
         }, {
-            "./curve": 9,
-            "./curves": 10,
-            bigi: 7
+            "./curve": 10,
+            "./curves": 11,
+            bigi: 8
         } ],
-        13: [ function(require, module, exports) {
+        14: [ function(require, module, exports) {
             (function(Buffer) {
                 var assert = require("assert");
                 var BigInteger = require("bigi");
@@ -1831,11 +1918,11 @@
                 module.exports = Point;
             }).call(this, require("buffer").Buffer);
         }, {
-            assert: 40,
-            bigi: 7,
-            buffer: 42
+            assert: 41,
+            bigi: 8,
+            buffer: 43
         } ],
-        14: [ function(require, module, exports) {
+        15: [ function(require, module, exports) {
             (function(process, Buffer) {
                 !function(globals) {
                     "use strict";
@@ -1922,11 +2009,11 @@
                 }(this);
             }).call(this, require("_process"), require("buffer").Buffer);
         }, {
-            _process: 47,
-            buffer: 42,
-            crypto: 41
+            _process: 48,
+            buffer: 43,
+            crypto: 42
         } ],
-        15: [ function(require, module, exports) {
+        16: [ function(require, module, exports) {
             (function(Buffer) {
                 var createHash = require("sha.js");
                 var md5 = toConstructor(require("./md5"));
@@ -1957,12 +2044,12 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            "./md5": 19,
-            buffer: 42,
-            ripemd160: 21,
-            "sha.js": 23
+            "./md5": 20,
+            buffer: 43,
+            ripemd160: 22,
+            "sha.js": 24
         } ],
-        16: [ function(require, module, exports) {
+        17: [ function(require, module, exports) {
             (function(Buffer) {
                 var createHash = require("./create-hash");
                 var zeroBuffer = new Buffer(128);
@@ -1997,10 +2084,10 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            "./create-hash": 15,
-            buffer: 42
+            "./create-hash": 16,
+            buffer: 43
         } ],
-        17: [ function(require, module, exports) {
+        18: [ function(require, module, exports) {
             (function(Buffer) {
                 var intSize = 4;
                 var zeroBuffer = new Buffer(intSize);
@@ -2036,9 +2123,9 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            buffer: 42
+            buffer: 43
         } ],
-        18: [ function(require, module, exports) {
+        19: [ function(require, module, exports) {
             (function(Buffer) {
                 var rng = require("./rng");
                 function error() {
@@ -2074,13 +2161,13 @@
                 });
             }).call(this, require("buffer").Buffer);
         }, {
-            "./create-hash": 15,
-            "./create-hmac": 16,
-            "./pbkdf2": 27,
-            "./rng": 28,
-            buffer: 42
+            "./create-hash": 16,
+            "./create-hmac": 17,
+            "./pbkdf2": 28,
+            "./rng": 29,
+            buffer: 43
         } ],
-        19: [ function(require, module, exports) {
+        20: [ function(require, module, exports) {
             var helpers = require("./helpers");
             function core_md5(x, len) {
                 x[len >> 5] |= 128 << len % 32;
@@ -2192,9 +2279,9 @@
                 return helpers.hash(buf, core_md5, 16);
             };
         }, {
-            "./helpers": 17
+            "./helpers": 18
         } ],
-        20: [ function(require, module, exports) {
+        21: [ function(require, module, exports) {
             (function(Buffer) {
                 module.exports = function(crypto) {
                     function pbkdf2(password, salt, iterations, keylen, digest, callback) {
@@ -2255,9 +2342,9 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            buffer: 42
+            buffer: 43
         } ],
-        21: [ function(require, module, exports) {
+        22: [ function(require, module, exports) {
             (function(Buffer) {
                 module.exports = ripemd160;
                 var zl = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 7, 4, 13, 1, 10, 6, 15, 3, 12, 0, 9, 5, 2, 14, 11, 8, 3, 10, 14, 4, 9, 15, 8, 1, 2, 7, 0, 6, 13, 11, 5, 12, 1, 9, 11, 10, 0, 8, 12, 4, 13, 3, 7, 15, 14, 5, 6, 2, 4, 0, 5, 9, 7, 12, 2, 10, 14, 1, 3, 8, 11, 6, 15, 13 ];
@@ -2381,9 +2468,9 @@
                 }
             }).call(this, require("buffer").Buffer);
         }, {
-            buffer: 42
+            buffer: 43
         } ],
-        22: [ function(require, module, exports) {
+        23: [ function(require, module, exports) {
             module.exports = function(Buffer) {
                 function Hash(blockSize, finalSize) {
                     this._block = new Buffer(blockSize);
@@ -2438,7 +2525,7 @@
                 return Hash;
             };
         }, {} ],
-        23: [ function(require, module, exports) {
+        24: [ function(require, module, exports) {
             var exports = module.exports = function(alg) {
                 var Alg = exports[alg];
                 if (!Alg) throw new Error(alg + " is not supported (we accept pull requests)");
@@ -2450,13 +2537,13 @@
             exports.sha256 = require("./sha256")(Buffer, Hash);
             exports.sha512 = require("./sha512")(Buffer, Hash);
         }, {
-            "./hash": 22,
-            "./sha1": 24,
-            "./sha256": 25,
-            "./sha512": 26,
-            buffer: 42
+            "./hash": 23,
+            "./sha1": 25,
+            "./sha256": 26,
+            "./sha512": 27,
+            buffer: 43
         } ],
-        24: [ function(require, module, exports) {
+        25: [ function(require, module, exports) {
             var inherits = require("util").inherits;
             module.exports = function(Buffer, Hash) {
                 var A = 0 | 0;
@@ -2536,9 +2623,9 @@
                 return Sha1;
             };
         }, {
-            util: 49
+            util: 50
         } ],
-        25: [ function(require, module, exports) {
+        26: [ function(require, module, exports) {
             var inherits = require("util").inherits;
             module.exports = function(Buffer, Hash) {
                 var K = [ 1116352408, 1899447441, 3049323471, 3921009573, 961987163, 1508970993, 2453635748, 2870763221, 3624381080, 310598401, 607225278, 1426881987, 1925078388, 2162078206, 2614888103, 3248222580, 3835390401, 4022224774, 264347078, 604807628, 770255983, 1249150122, 1555081692, 1996064986, 2554220882, 2821834349, 2952996808, 3210313671, 3336571891, 3584528711, 113926993, 338241895, 666307205, 773529912, 1294757372, 1396182291, 1695183700, 1986661051, 2177026350, 2456956037, 2730485921, 2820302411, 3259730800, 3345764771, 3516065817, 3600352804, 4094571909, 275423344, 430227734, 506948616, 659060556, 883997877, 958139571, 1322822218, 1537002063, 1747873779, 1955562222, 2024104815, 2227730452, 2361852424, 2428436474, 2756734187, 3204031479, 3329325298 ];
@@ -2634,9 +2721,9 @@
                 return Sha256;
             };
         }, {
-            util: 49
+            util: 50
         } ],
-        26: [ function(require, module, exports) {
+        27: [ function(require, module, exports) {
             var inherits = require("util").inherits;
             module.exports = function(Buffer, Hash) {
                 var K = [ 1116352408, 3609767458, 1899447441, 602891725, 3049323471, 3964484399, 3921009573, 2173295548, 961987163, 4081628472, 1508970993, 3053834265, 2453635748, 2937671579, 2870763221, 3664609560, 3624381080, 2734883394, 310598401, 1164996542, 607225278, 1323610764, 1426881987, 3590304994, 1925078388, 4068182383, 2162078206, 991336113, 2614888103, 633803317, 3248222580, 3479774868, 3835390401, 2666613458, 4022224774, 944711139, 264347078, 2341262773, 604807628, 2007800933, 770255983, 1495990901, 1249150122, 1856431235, 1555081692, 3175218132, 1996064986, 2198950837, 2554220882, 3999719339, 2821834349, 766784016, 2952996808, 2566594879, 3210313671, 3203337956, 3336571891, 1034457026, 3584528711, 2466948901, 113926993, 3758326383, 338241895, 168717936, 666307205, 1188179964, 773529912, 1546045734, 1294757372, 1522805485, 1396182291, 2643833823, 1695183700, 2343527390, 1986661051, 1014477480, 2177026350, 1206759142, 2456956037, 344077627, 2730485921, 1290863460, 2820302411, 3158454273, 3259730800, 3505952657, 3345764771, 106217008, 3516065817, 3606008344, 3600352804, 1432725776, 4094571909, 1467031594, 275423344, 851169720, 430227734, 3100823752, 506948616, 1363258195, 659060556, 3750685593, 883997877, 3785050280, 958139571, 3318307427, 1322822218, 3812723403, 1537002063, 2003034995, 1747873779, 3602036899, 1955562222, 1575990012, 2024104815, 1125592928, 2227730452, 2716904306, 2361852424, 442776044, 2428436474, 593698344, 2756734187, 3733110249, 3204031479, 2999351573, 3329325298, 3815920427, 3391569614, 3928383900, 3515267271, 566280711, 3940187606, 3454069534, 4118630271, 4000239992, 116418474, 1914138554, 174292421, 2731055270, 289380356, 3203993006, 460393269, 320620315, 685471733, 587496836, 852142971, 1086792851, 1017036298, 365543100, 1126000580, 2618297676, 1288033470, 3409855158, 1501505948, 4234509866, 1607167915, 987167468, 1816402316, 1246189591 ];
@@ -2797,9 +2884,9 @@
                 return Sha512;
             };
         }, {
-            util: 49
+            util: 50
         } ],
-        27: [ function(require, module, exports) {
+        28: [ function(require, module, exports) {
             var pbkdf2Export = require("pbkdf2-compat/pbkdf2");
             module.exports = function(crypto, exports) {
                 exports = exports || {};
@@ -2809,9 +2896,9 @@
                 return exports;
             };
         }, {
-            "pbkdf2-compat/pbkdf2": 20
+            "pbkdf2-compat/pbkdf2": 21
         } ],
-        28: [ function(require, module, exports) {
+        29: [ function(require, module, exports) {
             (function(global, Buffer) {
                 (function() {
                     var g = ("undefined" === typeof window ? global : window) || {};
@@ -2828,10 +2915,10 @@
                 })();
             }).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {}, require("buffer").Buffer);
         }, {
-            buffer: 42,
-            crypto: 41
+            buffer: 43,
+            crypto: 42
         } ],
-        29: [ function(require, module, exports) {
+        30: [ function(require, module, exports) {
             (function(Buffer) {
                 var crypto = require("crypto");
                 var assert = require("assert");
@@ -3011,14 +3098,14 @@
                 };
             }).call(this, require("buffer").Buffer);
         }, {
-            "./util": 30,
-            assert: 40,
-            bigi: 33,
-            buffer: 42,
-            crypto: 18,
-            ecurve: 37
+            "./util": 31,
+            assert: 41,
+            bigi: 34,
+            buffer: 43,
+            crypto: 19,
+            ecurve: 38
         } ],
-        30: [ function(require, module, exports) {
+        31: [ function(require, module, exports) {
             var crypto = require("crypto");
             module.exports = {
                 hmacSHA256: hmacSHA256
@@ -3027,30 +3114,30 @@
                 return crypto.createHmac("sha256", k).update(v).digest();
             }
         }, {
-            crypto: 18
-        } ],
-        31: [ function(require, module, exports) {
-            arguments[4][5][0].apply(exports, arguments);
-        }, {
-            "../package.json": 34,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/bigi/lib/bigi.js": 5
+            crypto: 19
         } ],
         32: [ function(require, module, exports) {
             arguments[4][6][0].apply(exports, arguments);
         }, {
-            "./bigi": 31,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/bigi/lib/convert.js": 6,
-            assert: 40,
-            buffer: 42
+            "../package.json": 35,
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/bigi/lib/bigi.js": 6
         } ],
         33: [ function(require, module, exports) {
             arguments[4][7][0].apply(exports, arguments);
         }, {
-            "./bigi": 31,
-            "./convert": 32,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/bigi/lib/index.js": 7
+            "./bigi": 32,
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/bigi/lib/convert.js": 7,
+            assert: 41,
+            buffer: 43
         } ],
         34: [ function(require, module, exports) {
+            arguments[4][8][0].apply(exports, arguments);
+        }, {
+            "./bigi": 32,
+            "./convert": 33,
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/bigi/lib/index.js": 8
+        } ],
+        35: [ function(require, module, exports) {
             module.exports = {
                 name: "bigi",
                 version: "1.3.0",
@@ -3090,44 +3177,44 @@
                 _from: "bigi@^1.2.1"
             };
         }, {} ],
-        35: [ function(require, module, exports) {
-            module.exports = require(9);
-        }, {
-            "./point": 39,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/curve.js": 9,
-            assert: 40,
-            bigi: 33
-        } ],
         36: [ function(require, module, exports) {
             module.exports = require(10);
         }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/curves.json": 10
+            "./point": 40,
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/curve.js": 10,
+            assert: 41,
+            bigi: 34
         } ],
         37: [ function(require, module, exports) {
             module.exports = require(11);
         }, {
-            "./curve": 35,
-            "./names": 38,
-            "./point": 39,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/index.js": 11
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/curves.json": 11
         } ],
         38: [ function(require, module, exports) {
             module.exports = require(12);
         }, {
-            "./curve": 35,
-            "./curves": 36,
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/names.js": 12,
-            bigi: 33
+            "./curve": 36,
+            "./names": 39,
+            "./point": 40,
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/index.js": 12
         } ],
         39: [ function(require, module, exports) {
             module.exports = require(13);
         }, {
-            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/point.js": 13,
-            assert: 40,
-            bigi: 33,
-            buffer: 42
+            "./curve": 36,
+            "./curves": 37,
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/names.js": 13,
+            bigi: 34
         } ],
         40: [ function(require, module, exports) {
+            module.exports = require(14);
+        }, {
+            "/Users/henrisack/workspace/NodeJS/angular-ecdsa/node_modules/coinkey/node_modules/eckey/node_modules/ecurve/lib/point.js": 14,
+            assert: 41,
+            bigi: 34,
+            buffer: 43
+        } ],
+        41: [ function(require, module, exports) {
             var util = require("util/");
             var pSlice = Array.prototype.slice;
             var hasOwn = Object.prototype.hasOwnProperty;
@@ -3330,10 +3417,10 @@
                 return keys;
             };
         }, {
-            "util/": 49
+            "util/": 50
         } ],
-        41: [ function(require, module, exports) {}, {} ],
-        42: [ function(require, module, exports) {
+        42: [ function(require, module, exports) {}, {} ],
+        43: [ function(require, module, exports) {
             var base64 = require("base64-js");
             var ieee754 = require("ieee754");
             var isArray = require("is-array");
@@ -4128,11 +4215,11 @@
                 }
             }
         }, {
-            "base64-js": 43,
-            ieee754: 44,
-            "is-array": 45
+            "base64-js": 44,
+            ieee754: 45,
+            "is-array": 46
         } ],
-        43: [ function(require, module, exports) {
+        44: [ function(require, module, exports) {
             var lookup = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
             (function(exports) {
                 "use strict";
@@ -4214,7 +4301,7 @@
                 exports.fromByteArray = uint8ToBase64;
             })(typeof exports === "undefined" ? this.base64js = {} : exports);
         }, {} ],
-        44: [ function(require, module, exports) {
+        45: [ function(require, module, exports) {
             exports.read = function(buffer, offset, isLE, mLen, nBytes) {
                 var e, m, eLen = nBytes * 8 - mLen - 1, eMax = (1 << eLen) - 1, eBias = eMax >> 1, nBits = -7, i = isLE ? nBytes - 1 : 0, d = isLE ? -1 : 1, s = buffer[offset + i];
                 i += d;
@@ -4275,14 +4362,14 @@
                 buffer[offset + i - d] |= s * 128;
             };
         }, {} ],
-        45: [ function(require, module, exports) {
+        46: [ function(require, module, exports) {
             var isArray = Array.isArray;
             var str = Object.prototype.toString;
             module.exports = isArray || function(val) {
                 return !!val && "[object Array]" == str.call(val);
             };
         }, {} ],
-        46: [ function(require, module, exports) {
+        47: [ function(require, module, exports) {
             if (typeof Object.create === "function") {
                 module.exports = function inherits(ctor, superCtor) {
                     ctor.super_ = superCtor;
@@ -4305,7 +4392,7 @@
                 };
             }
         }, {} ],
-        47: [ function(require, module, exports) {
+        48: [ function(require, module, exports) {
             var process = module.exports = {};
             process.nextTick = function() {
                 var canSetImmediate = typeof window !== "undefined" && window.setImmediate;
@@ -4378,12 +4465,12 @@
                 throw new Error("process.chdir is not supported");
             };
         }, {} ],
-        48: [ function(require, module, exports) {
+        49: [ function(require, module, exports) {
             module.exports = function isBuffer(arg) {
                 return arg && typeof arg === "object" && typeof arg.copy === "function" && typeof arg.fill === "function" && typeof arg.readUInt8 === "function";
             };
         }, {} ],
-        49: [ function(require, module, exports) {
+        50: [ function(require, module, exports) {
             (function(process, global) {
                 var formatRegExp = /%[sdj%]/g;
                 exports.format = function(f) {
@@ -4792,48 +4879,110 @@
                 }
             }).call(this, require("_process"), typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
         }, {
-            "./support/isBuffer": 48,
-            _process: 47,
-            inherits: 46
+            "./support/isBuffer": 49,
+            _process: 48,
+            inherits: 47
         } ],
-        50: [ function(require, module, exports) {
-            angular.module("ng-ecdsa", [ "sacketty.ecdsa", "sacketty.crypto", "sacketty.coinkey", "sacketty.buffer" ]);
-        }, {} ],
         51: [ function(require, module, exports) {
+            (function(Buffer) {
+                var assert = require("assert");
+                var crypto = require("crypto");
+                function pbkdf2(key, salt, iterations, dkLen) {
+                    var hLen = 32;
+                    assert(dkLen <= (Math.pow(2, 32) - 1) * hLen, "requested key length too long");
+                    assert(typeof key == "string" || Buffer.isBuffer(key), "key must be a string or buffer");
+                    assert(typeof salt == "string" || Buffer.isBuffer(salt), "key must be a string or buffer");
+                    if (typeof salt == "string") salt = new Buffer(salt);
+                    var DK = new Buffer(dkLen);
+                    var T = new Buffer(hLen);
+                    var block1 = new Buffer(salt.length + 4);
+                    var l = Math.ceil(dkLen / hLen);
+                    var r = dkLen - (l - 1) * hLen;
+                    salt.copy(block1, 0, 0, salt.length);
+                    for (var i = 1; i <= l; i++) {
+                        block1.writeUInt32BE(i, salt.length);
+                        var U = crypto.createHmac("sha256", key).update(block1).digest();
+                        U.copy(T, 0, 0, hLen);
+                        for (var j = 1; j < iterations; j++) {
+                            U = crypto.createHmac("sha256", key).update(U).digest();
+                            for (var k = 0; k < hLen; k++) {
+                                T[k] ^= U[k];
+                            }
+                        }
+                        var destPos = (i - 1) * hLen;
+                        var len = i == l ? r : hLen;
+                        T.copy(DK, destPos, 0, len);
+                    }
+                    return DK;
+                }
+                module.exports = pbkdf2;
+            }).call(this, require("buffer").Buffer);
+        }, {
+            assert: 41,
+            buffer: 43,
+            crypto: 19
+        } ],
+        52: [ function(require, module, exports) {
+            angular.module("ng-ecdsa", [ "sacketty.ecdsa", "sacketty.crypto", "sacketty.coinkey", "sacketty.buffer" ]);
+            angular.module("ng-crypto", [ "sacketty.crypto" ]);
+            angular.module("ng-coinkey", [ "sacketty.coinkey" ]);
+            angular.module("ng-aes", [ "sacketty.aes" ]);
+            angular.module("ng-buffer", [ "sacketty.buffer" ]);
+            angular.module("ng-pbkdf2", [ "sacketty.pbkdf2" ]);
+        }, {} ],
+        53: [ function(require, module, exports) {
+            "use strict";
+            var AES = require("aes");
+            angular.module("sacketty.aes", []).factory("AES", function() {
+                return AES;
+            });
+        }, {
+            aes: 1
+        } ],
+        54: [ function(require, module, exports) {
             "use strict";
             var buffer = require("buffer");
             angular.module("sacketty.buffer", []).factory("buffer", function() {
                 return buffer;
             });
         }, {
-            buffer: 42
+            buffer: 43
         } ],
-        52: [ function(require, module, exports) {
+        55: [ function(require, module, exports) {
             "use strict";
-            var coinkey = require("coinkey");
+            var Coinkey = require("coinkey");
             angular.module("sacketty.coinkey", []).factory("Coinkey", function() {
-                return coinkey;
+                return Coinkey;
             });
         }, {
-            coinkey: 1
+            coinkey: 2
         } ],
-        53: [ function(require, module, exports) {
+        56: [ function(require, module, exports) {
             "use strict";
             var crypto = require("crypto");
             angular.module("sacketty.crypto", []).factory("crypto", function() {
                 return crypto;
             });
         }, {
-            crypto: 18
+            crypto: 19
         } ],
-        54: [ function(require, module, exports) {
+        57: [ function(require, module, exports) {
             "use strict";
             var ecdsa = require("ecdsa");
             angular.module("sacketty.ecdsa", []).factory("ecdsa", function() {
                 return ecdsa;
             });
         }, {
-            ecdsa: 29
+            ecdsa: 30
+        } ],
+        58: [ function(require, module, exports) {
+            "use strict";
+            var pbkdf2 = require("pbkdf2-sha256");
+            angular.module("sacketty.pbkdf2", []).factory("pbkdf2", function() {
+                return pbkdf2;
+            });
+        }, {
+            "pbkdf2-sha256": 51
         } ]
-    }, {}, [ 50, 51, 52, 53, 54 ]);
+    }, {}, [ 52, 53, 54, 55, 56, 57, 58 ]);
 })(this, this.angular, this.Math, void 0);

@@ -17,7 +17,7 @@ describe('Service: crypto', function () {
     expect(crypto).not.toBe(null);
   });
 
-  it('should has createHash methos', function () {
+  it('should has createHash method', function () {
     expect(crypto.createHash).toBeDefined();
   });
 
