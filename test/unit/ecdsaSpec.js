@@ -52,6 +52,21 @@ describe('Service: ecdsa', function () {
     expect(privateKey.length).toEqual(32);
     expect(Buffer.isBuffer(privateKey)).toBe(true);
   });
-
+/* //BigInteger not defined..
+  it('should verified known signature', function(){
+    var msg = 'execute';
+    var nonce = '';
+    var obj = {'abv-r': '918160662028608125308262544383524098082366479190253505580386675596999593447',
+      'abv-s': '38418285381626091199969877420773704544327807656245042232333284436937730506472'};
+    var pubKey = '03d2233b3f3e98dd2afb987df80c7be37b27a1a51742b66813028ebce23d9dd5cb';
+    var publicKey = new Buffer(pubKey, 'hex');
+    var signature = {
+      r: new BigInteger(obj['abv-r'], 'hex'),
+      s: new BigInteger(obj['abv-s'], 'hex')
+    };
+    var result = ecdsa.verify(shaMsg, signature, publicKey);
+    expect(result).toBe(true);
+  })
+*/
 });
 

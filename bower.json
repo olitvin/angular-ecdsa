@@ -1,6 +1,6 @@
 {
   "name": "angular-ecdsa",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "authors": [
     "Henri Sack <hsack@abriva.net>"
   ],
@@ -23,7 +23,6 @@
     "tests"
   ],
   "dependencies": {
-    "angular": ">=1.0.0 <1.4.0",
-    "angular-mocks": ">=1.2.1"
+    "angular": ">=1.0.0 <1.4.0"
   }
 }
